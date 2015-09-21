@@ -26,11 +26,11 @@ sortQi = false;
 %% Sort units according to Quality Criterion
 % This serves to check whether quality criteria values reflect the unit to the chirp responses visually
 if sortRanksum == true;
-    [~, idx] = sort([units_for_chirp.ranksum]', 'ascend'); % find sorting index (ascend for ranksum)
-    units_for_chirp = units_for_chirp(idx); % sort according to index
+    [~, idx] = sort([units_for_chirp_sorted.ranksum]', 'ascend'); % find sorting index (ascend for ranksum)
+    units_for_chirp_sorted = units_for_chirp_sorted(idx); % sort according to index
 elseif sortQi == true;
-    [~, idx] = sort([units_for_chirp.qi]','descend'); % find sorting index (descend for qi)
-    units_for_chirp = units_for_chirp(idx); % sort according to index
+    [~, idx] = sort([units_for_chirp_sorted.qi]','descend'); % find sorting index (descend for qi)
+    units_for_chirp_sorted = units_for_chirp_sorted(idx); % sort according to index
 end
 
 %% Run through every unit and add it as subplot to the figure
@@ -69,15 +69,24 @@ for unit = units;
     ax(count) = subplot(length(units),1,count); % make as many subplots as units
     barH = bar(edges(1:end-1),spikeRates,'histc');
     set(barH, 'EdgeColor', 'none', 'FaceColor', [.7 .7 .7])
-%     xlabel('Peristimulus time (s)');
+    %     xlabel('Peristimulus time (s)');
     ylabel('Spike rate (Hz)');
-%     title('Average spike rate as PSTH and SDF');
-    infoTitle = strcat('Info: Mouse ', num2str(units_for_chirp_sorted(unit).mouse_counter),...
+    %     title('Average spike rate as PSTH and SDF');
+    try
+        infoTitle = strcat('Mouse ', num2str(units_for_chirp_sorted(unit).mouse_counter),...
+            ', Unit:', num2str(units_for_chirp_sorted(unit).unit_id),...
+            ', Series:', num2str(units_for_chirp_sorted(unit).series_num),...
+            ', Expt:', num2str(units_for_chirp_sorted(unit).exp_num),...
+            ', ranksum:', num2str(units_for_chirp_sorted(unit).ranksum),...
+            ', qi:', num2str(units_for_chirp_sorted(unit).qi));
+    catch
+        infoTitle = strcat('Info: Mouse ', num2str(units_for_chirp_sorted(unit).mouse_counter),...
         ', Unit ', num2str(units_for_chirp_sorted(unit).unit_id),...
         ', Series ', num2str(units_for_chirp_sorted(unit).series_num),...
         ', Experiment ', num2str(units_for_chirp_sorted(unit).exp_num));
+    end
     title(infoTitle);
-   
+    
     % Draw onset times
     onsetT = repmat(onsetT',2);
     line(onsetT,[min(spikeRates), max(spikeRates)],'Color','r', 'LineStyle', '--');    
