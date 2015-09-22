@@ -1,12 +1,13 @@
-%% Chirp Unit Comparison
-% Justaposes multiple PSTHs and SDFs for visual comparison in order to give clues for unit types 
-% to cluster
+%% ChirpQualityCritera_multiPSTHSDF
+% Justaposes multiple PSTHs and SDFs for visual comparison
+% Purpose: check chirp quality criteria (my Miro and Philipp) against each other and against the
+% actual unit responses to the chrip stimulus. Allows to sort units according to either criterion
+%
 % TODO: implement max number of subplots per window
 
-
-% clear all, close all, clc;
+clear all, clc;
 %% Setup - Run startup file (if not done yet); connect to server first
-startup
+startup_cin
 
 %% Load data
 % load('/Volumes/lab/users/yannik/units_for_chirp_sorted.mat')
@@ -14,22 +15,28 @@ load('/Users/Yannik/Google Drive/SHARED Folders & Files/Academic/MATLAB gdrive/M
 
 %% Parameters
 % Select units of interest
-units = [1:4];
+units = [1:10];
 
-% Sort units according to quality criterion
-sortRanksum = true; 
-sortQi = false;
+% Sort units according to quality criterion (type ranksum or qi or leave as empy array [])
+sortCriterion = 'qi'; 
+sortOrder = 'worst';
+% Choose order (best or worst units first)
+if strcmp(sortOrder, 'best');
+    order = {'ascend', 'descend'};
+elseif strcmp(sortOrder, 'worst');
+    order = {'descend', 'ascend'};
+end
 
 % % Max number of subplots per figure % ###YB: implement later
 % maxNumSubplots = 10;
 
 %% Sort units according to Quality Criterion
 % This serves to check whether quality criteria values reflect the unit to the chirp responses visually
-if sortRanksum == true;
-    [~, idx] = sort([units_for_chirp_sorted.ranksum]', 'ascend'); % find sorting index (ascend for ranksum)
+if strcmp(sortCriterion, 'ranksum');
+    [~, idx] = sort([units_for_chirp_sorted.ranksum]', order{1}); % find sorting index
     units_for_chirp_sorted = units_for_chirp_sorted(idx); % sort according to index
-elseif sortQi == true;
-    [~, idx] = sort([units_for_chirp_sorted.qi]','descend'); % find sorting index (descend for qi)
+elseif strcmp(sortCriterion, 'qi');
+    [~, idx] = sort([units_for_chirp_sorted.qi]', order{2}); % find sorting index
     units_for_chirp_sorted = units_for_chirp_sorted(idx); % sort according to index
 end
 
@@ -44,6 +51,15 @@ for unit = units;
     % Convert data format to fit plotSpikeRaster function format
     spikeTimes = cellfun(@transpose,spikeTimes,'un',0);
     nTrials = numel(spikeTimes);
+    
+    % Find any empty cell array elements and replace with NaNs to avoid errors later        
+    emptyCells = cellfun(@isempty,spikeTimes); % find empty cells  
+    if any(emptyCells) % if there are empty cells...
+        spikeTimes{emptyCells} = 0; % ...make empty cells NaN
+    end
+    %     spikeTimes = spikeTimes(~cellfun(@isempty, spikeTimes)); % alternative that simply removes
+    %     empty cells
+    
         
     %% Chirp Stimulus times
     [chirpT, chirpY, onsetT] = plotChirpStim();
@@ -74,16 +90,16 @@ for unit = units;
     %     title('Average spike rate as PSTH and SDF');
     try
         infoTitle = strcat('Mouse ', num2str(units_for_chirp_sorted(unit).mouse_counter),...
-            ', Unit:', num2str(units_for_chirp_sorted(unit).unit_id),...
             ', Series:', num2str(units_for_chirp_sorted(unit).series_num),...
-            ', Expt:', num2str(units_for_chirp_sorted(unit).exp_num),...
+            ', Expt:', num2str(units_for_chirp_sorted(unit).exp_num_chirp),...
+            ', Unit:', num2str(units_for_chirp_sorted(unit).unit_id),...
             ', ranksum:', num2str(units_for_chirp_sorted(unit).ranksum),...
             ', qi:', num2str(units_for_chirp_sorted(unit).qi));
     catch
         infoTitle = strcat('Info: Mouse ', num2str(units_for_chirp_sorted(unit).mouse_counter),...
-        ', Unit ', num2str(units_for_chirp_sorted(unit).unit_id),...
         ', Series ', num2str(units_for_chirp_sorted(unit).series_num),...
-        ', Experiment ', num2str(units_for_chirp_sorted(unit).exp_num));
+        ', Experiment ', num2str(units_for_chirp_sorted(unit).exp_num_chirp),...
+        ', Unit ', num2str(units_for_chirp_sorted(unit).unit_id));
     end
     title(infoTitle);
     
