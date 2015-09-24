@@ -1,21 +1,22 @@
 %% ChirpQualityCritera_multiPSTHSDF
 % Justaposes multiple PSTHs and SDFs for visual comparison
 % Purpose: check chirp quality criteria (my Miro and Philipp) against each other and against the
-% actual unit responses to the chrip stimulus. Allows to sort units according to either criterion
+% actual unit responses to the chirp stimulus. Allows to sort units according to either criterion
 %
 % TODO: implement max number of subplots per window
 
-clear all, clc;
+clear all,% clc;
 %% Setup - Run startup file (if not done yet); connect to server first
 startup_cin
 
 %% Load data
 % load('/Volumes/lab/users/yannik/units_for_chirp_sorted.mat')
-load('/Users/Yannik/Google Drive/SHARED Folders & Files/Academic/MATLAB gdrive/MATLAB HIWI/Miro scripts/units_for_chirp_sorted2.mat');
+% load('/Users/Yannik/Google Drive/SHARED Folders & Files/Academic/MATLAB gdrive/MATLAB HIWI/Miro scripts/units_for_chirp_sorted2.mat');
+load('units_for_chirp_sorted.mat')
 
 %% Parameters
 % Select units of interest
-units = [1:10];
+units = [1:2];
 
 % Sort units according to quality criterion (type ranksum or qi or leave as empy array [])
 sortCriterion = 'qi'; 
@@ -33,17 +34,18 @@ end
 %% Sort units according to Quality Criterion
 % This serves to check whether quality criteria values reflect the unit to the chirp responses visually
 if strcmp(sortCriterion, 'ranksum');
-    [~, idx] = sort([units_for_chirp_sorted.ranksum]', order{1}); % find sorting index
+    [~, idx] = sort([units_for_chirp_sorted.corr_p]', order{1}); % find sorting index
     units_for_chirp_sorted = units_for_chirp_sorted(idx); % sort according to index
 elseif strcmp(sortCriterion, 'qi');
-    [~, idx] = sort([units_for_chirp_sorted.qi]', order{2}); % find sorting index
+    [~, idx] = sort([units_for_chirp_sorted.berens_qi]', order{2}); % find sorting index
     units_for_chirp_sorted = units_for_chirp_sorted(idx); % sort according to index
 end
 
 %% Run through every unit and add it as subplot to the figure
 count = 1; % loop-counter
 fig = figure;
-for unit = units;
+for unit = units;    
+        
     % get all spike times in TrialSpikeExtra as cell array    
     spikeTimes = fetchn(data.TrialSpikesExtra(units_for_chirp_sorted(unit)),...
         'spike_times');
@@ -91,21 +93,21 @@ for unit = units;
     try
         infoTitle = strcat('Mouse ', num2str(units_for_chirp_sorted(unit).mouse_counter),...
             ', Series:', num2str(units_for_chirp_sorted(unit).series_num),...
-            ', Expt:', num2str(units_for_chirp_sorted(unit).exp_num_chirp),...
+            ', Expt:', num2str(units_for_chirp_sorted(unit).exp_num),...
             ', Unit:', num2str(units_for_chirp_sorted(unit).unit_id),...
-            ', ranksum:', num2str(units_for_chirp_sorted(unit).ranksum),...
-            ', qi:', num2str(units_for_chirp_sorted(unit).qi));
+            ', ranksum:', num2str(units_for_chirp_sorted(unit).corr_p),...
+            ', qi:', num2str(units_for_chirp_sorted(unit).berens_qi));
     catch
         infoTitle = strcat('Info: Mouse ', num2str(units_for_chirp_sorted(unit).mouse_counter),...
         ', Series ', num2str(units_for_chirp_sorted(unit).series_num),...
-        ', Experiment ', num2str(units_for_chirp_sorted(unit).exp_num_chirp),...
+        ', Experiment ', num2str(units_for_chirp_sorted(unit).exp_num),...
         ', Unit ', num2str(units_for_chirp_sorted(unit).unit_id));
     end
     title(infoTitle);
     
     % Draw onset times
     onsetT = repmat(onsetT',2);
-    line(onsetT,[min(spikeRates), max(spikeRates)],'Color','r', 'LineStyle', '--');    
+    line(onsetT,ax(count).YLim,'Color','r', 'LineStyle', '--');
     hold on
     
     %% Spike Density Function (SDF) - overlaid onto PSTH
@@ -138,6 +140,9 @@ for unit = units;
     hold off
 
     count = count+1; % update loop-counter
+    
+    clear counts % clears histogram counts (bug fix)
+    
 end
     %% adust overall plot
     xlabel('Peristimulus time (s)');
