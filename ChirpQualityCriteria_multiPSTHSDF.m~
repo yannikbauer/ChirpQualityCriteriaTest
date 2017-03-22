@@ -151,4 +151,11 @@ end
     linkaxes(ax,'x');
     xlim(ax(1),[0 max(onsetT(:,1))+1]);
 
-   
+    <<<<<<< HEAD
+%% test again
+%% test branch
+%% post merge
+%% post merge 2
+%% post merge 3
+=======
+>>>>>>> parent of dff29da... test
