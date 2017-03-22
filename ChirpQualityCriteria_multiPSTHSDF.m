@@ -150,9 +150,3 @@ end
         'TickDir', 'out', 'box','off')
     linkaxes(ax,'x');
     xlim(ax(1),[0 max(onsetT(:,1))+1]);
-
-   % test branch 2
-
-   % test brachn 2 2
-% tets b 2 3
-% final
